@@ -5,19 +5,27 @@ import time
 ROWS, COLS = 20, 20
 CELL_SIZE = 20
 neighbr = [(1, 0), (0, 1), (-1, 0), (0, -1)]    #координаты соседних клеток относительно текущей
-rectangles = []
 
-def get_map_from_file():        #авторская карта:
-    grid = []
-    with open("map.txt") as f:
-        for line in f:
-            grid.append(list(map(int, line.split())))
-
-    print(*grid, sep = '\n')
-    return grid
-    
-grid = get_map_from_file()
-print(*grid, sep='\n')
+grid = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+[1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 3, 0, 1],
+[1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+[1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+[1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+[1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1],
+[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+[1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+[1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+[1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+[1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+[1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
+[1, 0, 2, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1],
+[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
 
 def swap_cell_pkm(event):   #старт/конец
     c = event.x // CELL_SIZE
@@ -50,14 +58,9 @@ def swap_cell_lkm(event):   #препятствие/свободно
         canvas.itemconfig(rectangles[r][c], fill=color)
         print(*grid, sep='\n', end='\n')
 
-def Manheten(current, fin): #эвристическое растояние
-    return abs(current[0] - fin[0]) + abs(current[1] - fin[1])
-
-def f_counter(path_length, current, fin):   #эвристическое расстояние + расстояние от начала движения до этой точки
-    return path_length + Manheten(current, fin)
-
-
-def fill_map(grid):
+def empty_map(rectangles):
+    grid = [[1 if i == 0 or j == 0 or i == COLS-1 or j == ROWS-1 else 0 for i in range(COLS)] for j in range(ROWS)] #создаём карту
+    rectangles = []
     for r in range(ROWS):
         row_rects = []
         for c in range(COLS):
@@ -72,6 +75,15 @@ def fill_map(grid):
             else:
                 rect = canvas.create_rectangle(x0, y0, x1, y1, fill="red", outline="gray")
             row_rects.append(rect)
+        rectangles.append(row_rects)
+    return grid
+
+def Manheten(current, fin): #эвристическое растояние
+    return abs(current[0] - fin[0]) + abs(current[1] - fin[1])
+
+def f_counter(path_length, current, fin):   #эвристическое расстояние + расстояние от начала движения до этой точки
+    return path_length + Manheten(current, fin)
+
 
 def get_key(val, my_dict):                  #получение ключа по значению
     for key, value in my_dict.items():
@@ -84,11 +96,27 @@ root.title("map")
 canvas = tk.Canvas(root, width=COLS*CELL_SIZE, height=ROWS*CELL_SIZE, highlightthickness=0)
 canvas.pack()
 
-print(*grid, sep='\n')
-fill_map(grid)
+rectangles = []
+
+for r in range(ROWS):
+        row_rects = []
+        for c in range(COLS):
+            x0, y0 = c*CELL_SIZE, r*CELL_SIZE
+            x1, y1 = x0 + CELL_SIZE, y0 + CELL_SIZE
+            if grid[r][c] == 0:
+                rect = canvas.create_rectangle(x0, y0, x1, y1, fill="white", outline="gray")
+            elif grid[r][c] == 1:
+                rect = canvas.create_rectangle(x0, y0, x1, y1, fill="black", outline="gray")
+            elif grid[r][c] == 2:
+                rect = canvas.create_rectangle(x0, y0, x1, y1, fill="green", outline="gray")
+            else:
+                rect = canvas.create_rectangle(x0, y0, x1, y1, fill="red", outline="gray")
+            row_rects.append(rect)
+        rectangles.append(row_rects)
 
 
-def A_start():
+
+def Dijkstra():
     open = []
     closed = []
     current = []
@@ -114,7 +142,7 @@ def A_start():
     while open and fin != current:
         f_buffer = {}
         for i in open:
-            f_buffer[i] = f_counter(path_length[i], i, fin)
+            f_buffer[i] = path_length[i]
         current = get_key(min(f_buffer.values()), f_buffer)
         closed.append(current)
         open.remove(current)
@@ -128,7 +156,7 @@ def A_start():
         if current != fin:
             canvas.itemconfig(rectangles[current[0]][current[1]], fill='Gray')
         root.update()
-        time.sleep(0.03)
+        time.sleep(0.01)
     if current == fin:
         while current != start:
             current = parents[current]
@@ -137,9 +165,7 @@ def A_start():
         
     root.update()
 
-
-
-button = tk.Button(root, text="Поехали", command=A_start)
+button = tk.Button(root, text="Поехали", command=Dijkstra)
 button.pack()
 
 # Привязываем обработчик клика

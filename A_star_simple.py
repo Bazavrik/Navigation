@@ -1,23 +1,12 @@
 import tkinter as tk
 import time
 
-# Размер карты и клетки
-ROWS, COLS = 20, 20
-CELL_SIZE = 20
-neighbr = [(1, 0), (0, 1), (-1, 0), (0, -1)]    #координаты соседних клеток относительно текущей
-rectangles = []
-
 def get_map_from_file():        #авторская карта:
     grid = []
     with open("map.txt") as f:
         for line in f:
             grid.append(list(map(int, line.split())))
-
-    print(*grid, sep = '\n')
     return grid
-    
-grid = get_map_from_file()
-print(*grid, sep='\n')
 
 def swap_cell_pkm(event):   #старт/конец
     c = event.x // CELL_SIZE
@@ -56,37 +45,10 @@ def Manheten(current, fin): #эвристическое растояние
 def f_counter(path_length, current, fin):   #эвристическое расстояние + расстояние от начала движения до этой точки
     return path_length + Manheten(current, fin)
 
-
-def fill_map(grid):
-    for r in range(ROWS):
-        row_rects = []
-        for c in range(COLS):
-            x0, y0 = c*CELL_SIZE, r*CELL_SIZE
-            x1, y1 = x0 + CELL_SIZE, y0 + CELL_SIZE
-            if grid[r][c] == 0:
-                rect = canvas.create_rectangle(x0, y0, x1, y1, fill="white", outline="gray")
-            elif grid[r][c] == 1:
-                rect = canvas.create_rectangle(x0, y0, x1, y1, fill="black", outline="gray")
-            elif grid[r][c] == 2:
-                rect = canvas.create_rectangle(x0, y0, x1, y1, fill="green", outline="gray")
-            else:
-                rect = canvas.create_rectangle(x0, y0, x1, y1, fill="red", outline="gray")
-            row_rects.append(rect)
-
 def get_key(val, my_dict):                  #получение ключа по значению
     for key, value in my_dict.items():
         if value == val:
             return key
-
-root = tk.Tk()
-root.title("map")
-
-canvas = tk.Canvas(root, width=COLS*CELL_SIZE, height=ROWS*CELL_SIZE, highlightthickness=0)
-canvas.pack()
-
-print(*grid, sep='\n')
-fill_map(grid)
-
 
 def A_start():
     open = []
@@ -128,7 +90,7 @@ def A_start():
         if current != fin:
             canvas.itemconfig(rectangles[current[0]][current[1]], fill='Gray')
         root.update()
-        time.sleep(0.03)
+        time.sleep(0.02)
     if current == fin:
         while current != start:
             current = parents[current]
@@ -137,12 +99,44 @@ def A_start():
         
     root.update()
 
+def fill_map(grid, rectangles):
+    for r in range(ROWS):
+        row_rects = []
+        for c in range(COLS):
+            x0, y0 = c*CELL_SIZE, r*CELL_SIZE
+            x1, y1 = x0 + CELL_SIZE, y0 + CELL_SIZE
+            if grid[r][c] == 0:
+                rect = canvas.create_rectangle(x0, y0, x1, y1, fill="white", outline="gray")
+            elif grid[r][c] == 1:
+                rect = canvas.create_rectangle(x0, y0, x1, y1, fill="black", outline="gray")
+            elif grid[r][c] == 2:
+                rect = canvas.create_rectangle(x0, y0, x1, y1, fill="green", outline="gray")
+            else:
+                rect = canvas.create_rectangle(x0, y0, x1, y1, fill="red", outline="gray")
+            row_rects.append(rect)
+        rectangles.append(row_rects)
 
+if __name__ == "__main__":
+    
+    ROWS, COLS = 20, 20
+    CELL_SIZE = 20
+    neighbr = [(1, 0), (0, 1), (-1, 0), (0, -1)]    #координаты соседних клеток относительно текущей
+    grid = get_map_from_file()
 
-button = tk.Button(root, text="Поехали", command=A_start)
-button.pack()
+    root = tk.Tk()
+    root.title("map")
+    canvas = tk.Canvas(root, width=COLS*CELL_SIZE, height=ROWS*CELL_SIZE, highlightthickness=0)
+    canvas.pack()
 
-# Привязываем обработчик клика
-canvas.bind("<Button-1>", swap_cell_lkm)
-canvas.bind("<Button-3>", swap_cell_pkm)
-root.mainloop()
+    rectangles = []
+
+    fill_map(grid, rectangles)
+
+    # Привязываем обработчик клика
+    canvas.bind("<Button-1>", swap_cell_lkm)
+    canvas.bind("<Button-3>", swap_cell_pkm)
+    
+
+    button = tk.Button(root, text="Поехали", command=A_start)
+    button.pack()
+    root.mainloop()
